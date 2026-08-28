@@ -23,7 +23,8 @@ export default function FileUpload({ onResult }: Props) {
           import("@/lib/analytics"),
         ]);
         const buffer = await file.arrayBuffer();
-        const cupons = parsearPlanilha(buffer);
+        const parsed = parsearPlanilha(buffer);
+        const cupons = Array.isArray(parsed) ? parsed : [];
 
         if (cupons.length === 0) {
           setError("Nenhum cupom encontrado na planilha");
