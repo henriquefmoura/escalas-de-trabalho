@@ -18,17 +18,24 @@ export default function FileUpload({ onResult }: Props) {
       setLoading(true);
       setError(null);
       try {
-        const form = new FormData();
-        form.append("file", file);
-        const res = await fetch("/api/upload", { method: "POST", body: form });
-        const json = await res.json();
-        if (!res.ok) {
-          setError(json.error || "Erro desconhecido");
+        const [{ parsearPlanilha }, { processarCupons }] = await Promise.all([
+          import("@/lib/parser"),
+          import("@/lib/analytics"),
+        ]);
+        const buffer = await file.arrayBuffer();
+        const cupons = parsearPlanilha(buffer);
+
+        if (cupons.length === 0) {
+          setError("Nenhum cupom encontrado na planilha");
         } else {
-          onResult(json.analytics, json.cupons);
+          onResult(processarCupons(cupons), cupons.length);
         }
       } catch (e) {
-        setError(String(e));
+        setError(
+          e instanceof Error
+            ? `Erro ao processar arquivo: ${e.message}`
+            : "Erro ao processar arquivo"
+        );
       } finally {
         setLoading(false);
       }
